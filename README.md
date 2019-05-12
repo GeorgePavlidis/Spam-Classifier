@@ -11,6 +11,6 @@ can predict whether a message is spam or not.
 This model consists of three main layers: embedding layer,convolutional, full-connected.
 - The first is the embedding layer, which is responsible for the vectorization of vocabulary. The data must first be
 converted to vectors in order to be used as input to the network. The conversion is performed as follows.
--- Each word is converted to an integer and created dictionary with all the words
+* Each word is converted to an integer and created dictionary with all the words
       
   
