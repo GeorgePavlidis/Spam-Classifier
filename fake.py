@@ -29,7 +29,7 @@ def basic_preprocessing(text):
 	# Tokenize the text
 	tokens = text.split()
 	# Remove stopwords
-	stop_words = set(stopwords.words('english')) + additional_stopwords
+	stop_words = set(stopwords.words('english') + additional_stopwords)
 	tokens = [token for token in tokens if token not in stop_words]
 	# Lemmatize words
 	lemmatizer = WordNetLemmatizer()
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 	dataset = dataset.sample(frac=1).reset_index(drop=True)
 
 	# Data Preparation
-	dataset.text = basic_preprocessing(dataset.text)
+	dataset.text  = dataset.text.apply(lambda row: basic_preprocessing(row))
 
 	# Splitting Data
 	X_train, X_test, y_train, y_test = train_test_split(dataset.text, dataset.label, test_size=0.2, random_state=42)
@@ -75,16 +75,16 @@ if __name__ == '__main__':
 								 preprocessor=lambda x: x, token_pattern=None)
 	vectorizer.fit(X_train)
 	X_train_tfidf = vectorizer.transform(X_train)
-	X_train_emb = np.array([np.mean(
-		[w2v_model[w] * vectorizer.idf_[vectorizer.vocabulary_[w]] for w in text.split() if
-		 w in w2v_model and w in vectorizer.vocabulary_] or [np.zeros(embedding_size)], axis=0) for
-							text in X_train])
+	# X_train_emb = np.array([np.mean(
+	# 	[w2v_model[w] * vectorizer.idf_[vectorizer.vocabulary_[w]] for w in text.split() if
+	# 	 w in w2v_model and w in vectorizer.vocabulary_] or [np.zeros(embedding_size)], axis=0) for
+	# 						text in X_train])
 
 	X_test_tfidf = vectorizer.transform(X_test)
-	X_test_emb = np.array([np.mean(
-		[w2v_model[w] * vectorizer.idf_[vectorizer.vocabulary_[w]] for w in text.split() if
-		 w in w2v_model and w in vectorizer.vocabulary_] or [np.zeros(embedding_size)], axis=0) for
-						   text in X_test])
+	# X_test_emb = np.array([np.mean(
+	# 	[w2v_model[w] * vectorizer.idf_[vectorizer.vocabulary_[w]] for w in text.split() if
+	# 	 w in w2v_model and w in vectorizer.vocabulary_] or [np.zeros(embedding_size)], axis=0) for
+	# 					   text in X_test])
 
 	# Feature Extraction
 	# X_train_emb = np.array([np.mean(
@@ -98,15 +98,15 @@ if __name__ == '__main__':
 	# Training Classifier
 	clf = lgb.LGBMClassifier(num_leaves=64, n_estimators=300, max_depth=9)
 	# CV_rfc = GridSearchCV(clf, param_grid={'max_depth': [2, 3]}, cv=5)
-	clf.fit(X_train_emb, y_train)
+	clf.fit(X_train_tfidf, y_train)
 
 
 	# Evaluation
-	y_pred = clf.predict(X_test_emb , verdose=True)
+	y_pred = clf.predict(X_test_tfidf)
 	accuracy = accuracy_score(y_test, y_pred)
 	print("Accuracy:", accuracy)
 
-	scores = cross_val_score(clf, X_test_emb, y_test, cv=5)
+	scores = cross_val_score(clf, X_test_tfidf, y_test, cv=5)
 	print("==============================================")
 	for score in scores:
 		print("Accuracy:", scores)
