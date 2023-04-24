@@ -5,7 +5,7 @@ import os
 import lightgbm as lgb
 import argparse
 
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, recall_score
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 import sys as sys
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -13,6 +13,7 @@ import gensim.downloader as api
 import string
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+import pickle
 
 additional_stopwords = []
 def basic_preprocessing(text):
@@ -99,7 +100,9 @@ if __name__ == '__main__':
 	clf = lgb.LGBMClassifier(num_leaves=64, n_estimators=300, max_depth=9)
 	# CV_rfc = GridSearchCV(clf, param_grid={'max_depth': [2, 3]}, cv=5)
 	clf.fit(X_train_tfidf, y_train)
-
+	# save the model to disk
+	filename = 'finalized_model.sav'
+	pickle.dump(clf, open(filename, 'wb'))
 
 	# Evaluation
 	y_pred = clf.predict(X_test_tfidf)
