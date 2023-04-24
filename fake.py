@@ -5,7 +5,7 @@ import os
 import lightgbm as lgb
 import argparse
 
-from sklearn.metrics import accuracy_score, recall_score
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 import sys as sys
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -16,6 +16,9 @@ from nltk.stem import WordNetLemmatizer
 import pickle
 
 additional_stopwords = []
+filename = 'finalized_model.sav'
+
+
 def basic_preprocessing(text):
 	"""
 	A simple function to clean up the data. All the words that
@@ -39,11 +42,32 @@ def basic_preprocessing(text):
 	# Join the tokens back into a string
 	return ' '.join(tokens)
 
+
+def eval(clf, y_pred, y_true):
+	y_pred = clf.predict(y_pred)
+	accuracy = accuracy_score(y_true, y_pred)
+	print("Accuracy:", accuracy)
+	recall = recall_score(y_true, y_pred)
+	print("Recall:", recall)
+	precision = precision_score(y_true, y_pred)
+	print("precision:", precision)
+	f1 = f1_score(y_true, y_pred)
+	print("f1:", f1)
+
+	scores = cross_val_score(clf, y_pred, y_true, cv=5)
+	print("==============================================")
+	for score in scores:
+		print("Accuracy:", score)
+	print("Mean Accuracy:", accuracy)
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-input_path", "-i",
 						help="Folder with data files",
 						default='./data/archive')
+	parser.add_argument("-train", "-t",
+						help="train or load",
+						default=True)
 
 
 
@@ -95,22 +119,15 @@ if __name__ == '__main__':
 	# 	[w2v_model[w] for w in text.split() if w in w2v_model] or [np.zeros(embedding_size)],
 	# 	axis=0) for text in X_test_spm])
 
-
-	# Training Classifier
-	clf = lgb.LGBMClassifier(num_leaves=64, n_estimators=300, max_depth=9)
-	# CV_rfc = GridSearchCV(clf, param_grid={'max_depth': [2, 3]}, cv=5)
-	clf.fit(X_train_tfidf, y_train)
-	# save the model to disk
-	filename = 'finalized_model.sav'
-	pickle.dump(clf, open(filename, 'wb'))
+	if args.train:
+		# Training Classifier
+		clf = lgb.LGBMClassifier(num_leaves=64, n_estimators=300, max_depth=9)
+		# CV_rfc = GridSearchCV(clf, param_grid={'max_depth': [2, 3]}, cv=5)
+		clf.fit(X_train_tfidf, y_train)
+		# save the model to disk
+		pickle.dump(clf, open(filename, 'wb'))
+	else:
+		clf = pickle.load(open(filename, 'rb'))
 
 	# Evaluation
-	y_pred = clf.predict(X_test_tfidf)
-	accuracy = accuracy_score(y_test, y_pred)
-	print("Accuracy:", accuracy)
-
-	scores = cross_val_score(clf, X_test_tfidf, y_test, cv=5)
-	print("==============================================")
-	for score in scores:
-		print("Accuracy:", scores)
-	print("Mean Accuracy:", accuracy)
+	eval(clf, X_test_tfidf, y_test)
