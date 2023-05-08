@@ -1,0 +1,106 @@
+Evaluation - LightGBM
+==============================================
+Accuracy: 0.9983127488695417
+Recall: 0.9992958738205886
+precision: 0.9971894322653176
+f1: 0.9982415418161356
+
+Cross validation
+Accuracy: 0.9956140350877193
+Accuracy: 0.9935897435897436
+Accuracy: 0.9952750590617617
+Accuracy: 0.99628754640567
+Accuracy: 0.99628754640567
+
+Confusion matrix
+ [[7696   20]
+ [   5 7096]]
+
+True Positives(TP) =  7696
+True Negatives(TN) =  7096
+False Positives(FP) =  20
+False Negatives(FN) =  5
+
+Training set score (LightGBM): 1.0000
+Test set score (LightGBM): 0.9983
+
+
+Evaluation - Random Forest
+==============================================
+Accuracy: 0.9912262941216171
+Recall: 0.9942261653288269
+precision: 0.9875507063925024
+f1: 0.9908771929824561
+
+Cross validation
+Accuracy: 0.9838056680161943
+Accuracy: 0.9851551956815114
+Accuracy: 0.9800877489031387
+Accuracy: 0.9861626729665879
+Accuracy: 0.9888626392170098
+
+Confusion matrix
+ [[7627   89]
+ [  41 7060]]
+
+True Positives(TP) =  7627
+True Negatives(TN) =  7060
+False Positives(FP) =  89
+False Negatives(FN) =  41
+
+Training set score (Random Forest): 1.0000
+Test set score (Random Forest): 0.9912
+
+
+Evaluation - SVM
+==============================================
+Accuracy: 0.9950057366538435
+Recall: 0.9964793691029432
+precision: 0.9931228070175439
+f1: 0.9947982567130605
+
+Cross validation
+Accuracy: 0.9902159244264508
+Accuracy: 0.9942645074224021
+Accuracy: 0.9892001349983125
+Accuracy: 0.9922375970300371
+Accuracy: 0.9932500843739454
+
+Confusion matrix
+ [[7667   49]
+ [  25 7076]]
+
+True Positives(TP) =  7667
+True Negatives(TN) =  7076
+False Positives(FP) =  49
+False Negatives(FN) =  25
+
+Training set score (SVM): 0.9994
+Test set score (SVM): 0.9950
+
+
+Evaluation - Multinomial Naive Bayes
+==============================================
+Accuracy: 0.9661874873456165
+Recall: 0.9814110688635403
+precision: 0.9497138184791496
+f1: 0.9653023062538956
+
+Cross validation
+Accuracy: 0.9524291497975709
+Accuracy: 0.9649122807017544
+Accuracy: 0.9568005399932501
+Accuracy: 0.9635504556193047
+Accuracy: 0.9578130273371583
+
+Confusion matrix
+ [[7347  369]
+ [ 132 6969]]
+
+True Positives(TP) =  7347
+True Negatives(TN) =  6969
+False Positives(FP) =  369
+False Negatives(FN) =  132
+
+Training set score (Multinomial Naive Bayes): 0.9719
+Test set score (Multinomial Naive Bayes): 0.9662
