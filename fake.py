@@ -5,7 +5,10 @@ import os
 import lightgbm as lgb
 import argparse
 from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, precision_score, f1_score
+from sklearn.svm import SVC
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.ensemble import RandomForestClassifier
 import sys as sys
 from sklearn.feature_extraction.text import TfidfVectorizer
 import gensim.downloader as api
@@ -120,32 +123,26 @@ if __name__ == '__main__':
 	# 	 w in w2v_model and w in vectorizer.vocabulary_] or [np.zeros(embedding_size)], axis=0) for
 	# 					   text in X_test])
 
+	classifiers = {
+		'LightGBM': lgb.LGBMClassifier(num_leaves=64, n_estimators=300, max_depth=9),
+		'Random Forest': RandomForestClassifier(n_estimators=100),
+		'SVM': SVC(kernel='linear', probability=True),
+		'Multinomial Naive Bayes': MultinomialNB()
+	}
 
 	if args.train:
-		# Training Classifier
-		clf = lgb.LGBMClassifier(num_leaves=64, n_estimators=300, max_depth=9)
-		rf_clf = RandomForestClassifier(n_estimators=100)
-		# CV_rfc = GridSearchCV(clf, param_grid={'max_depth': [2, 3]}, cv=5)
-		# Train LightGBM Classifier
-		lgb_clf.fit(X_train_tfidf, y_train)
-		# Save the LightGBM model to disk
-		pickle.dump(lgb_clf, open('lgb_model.sav', 'wb'))
-
-		# Train Random Forest Classifier
-		rf_clf.fit(X_train_tfidf, y_train)
-		# Save the Random Forest model to disk
-		pickle.dump(rf_clf, open('rf_model.sav', 'wb'))
+		for clf_name, clf in classifiers.items():
+			clf.fit(X_train_tfidf, y_train)
+			# Save the model to disk
+			pickle.dump(clf, open(f'{clf_name}_model.sav', 'wb'))
 	else:
-		clf = pickle.load(open(filename, 'rb'))
+		for clf_name in classifiers.keys():
+			clf = pickle.load(open(f'{clf_name}_model.sav', 'rb'))
+			classifiers[clf_name] = clf
 
-	# Evaluation - LightGBM
-	print("Evaluation - LightGBM")
-	eval(lgb_clf, X_test_tfidf, y_test)
-	print('Training set score (LightGBM): {:.4f}'.format(lgb_clf.score(X_train_tfidf, y_train)))
-	print('Test set score (LightGBM): {:.4f}'.format(lgb_clf.score(X_test_tfidf, y_test)))
-
-	# Evaluation - Random Forest
-	print("Evaluation - Random Forest")
-	eval(rf_clf, X_test_tfidf, y_test)
-	print('Training set score (Random Forest): {:.4f}'.format(rf_clf.score(X_train_tfidf, y_train)))
-	print('Test set score (Random Forest): {:.4f}'.format(rf_clf.score(X_test_tfidf, y_test)))
+	# Evaluation
+	for clf_name, clf in classifiers.items():
+		print(f"Evaluation - {clf_name}")
+		eval(clf, X_test_tfidf, y_test)
+		print(f'Training set score ({clf_name}): {clf.score(X_train_tfidf, y_train):.4f}')
+		print(f'Test set score ({clf_name}): {clf.score(X_test_tfidf, y_test):.4f}')
