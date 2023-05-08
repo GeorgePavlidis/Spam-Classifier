@@ -4,8 +4,7 @@ import numpy as np
 import os
 import lightgbm as lgb
 import argparse
-
-from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
+from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, precision_score, f1_score
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 import sys as sys
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -43,8 +42,8 @@ def basic_preprocessing(text):
 	return ' '.join(tokens)
 
 
-def eval(clf, y_pred, y_true):
-	y_pred = clf.predict(y_pred)
+def eval(clf, X_test, y_true):
+	y_pred = clf.predict(X_test)
 	accuracy = accuracy_score(y_true, y_pred)
 	print("Accuracy:", accuracy)
 	recall = recall_score(y_true, y_pred)
@@ -54,11 +53,21 @@ def eval(clf, y_pred, y_true):
 	f1 = f1_score(y_true, y_pred)
 	print("f1:", f1)
 
-	scores = cross_val_score(clf, y_pred, y_true, cv=5)
+	scores = cross_val_score(clf, X_test, y_true, cv=5)
 	print("==============================================")
 	for score in scores:
 		print("Accuracy:", score)
 	print("Mean Accuracy:", accuracy)
+
+	cm = confusion_matrix(y_test, y_pred)
+	print('Confusion matrix\n\n', cm)
+	print('\nTrue Positives(TP) = ', cm[0,0])
+	print('\nTrue Negatives(TN) = ', cm[1,1])
+	print('\nFalse Positives(FP) = ', cm[0,1])
+	print('\nFalse Negatives(FN) = ', cm[1,0])
+	# cm_matrix = pd.DataFrame(data=cm, columns=['Actual Positive:1', 'Actual Negative:0'],
+	# 						 index=['Predict Positive:1', 'Predict Negative:0'])
+	# sns.heatmap(cm_matrix, annot=True, fmt='d', cmap='YlGnBu')
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -67,7 +76,7 @@ if __name__ == '__main__':
 						default='./data/archive')
 	parser.add_argument("-train", "-t",
 						help="train or load",
-						default=True)
+						default=False)
 
 
 
@@ -80,20 +89,20 @@ if __name__ == '__main__':
 	real = pd.read_csv(os.path.join(CSV_PATH, 'True.csv'))
 	real['label'] = 1
 	# Concat to one dataframe
-	dataset  = pd.concat([real, fake],  ignore_index=True)
+	dataset = pd.concat([real, fake],  ignore_index=True)
 	# Not any particular reason, I just prefer to have the two classes shuffled
 	dataset = dataset.sample(frac=1).reset_index(drop=True)
 
 	# Data Preparation
-	dataset.text  = dataset.text.apply(lambda row: basic_preprocessing(row))
+	dataset.text = dataset.text.apply(lambda row: basic_preprocessing(row))
 
 	# Splitting Data
-	X_train, X_test, y_train, y_test = train_test_split(dataset.text, dataset.label, test_size=0.2, random_state=42)
+	X_train, X_test, y_train, y_test = train_test_split(dataset.text, dataset.label, test_size=0.33, random_state=42)
 
 
-	# Tokenizing and embedding
-	w2v_model = api.load('word2vec-google-news-300')
-	embedding_size = w2v_model.vector_size
+	# # Tokenizing and embedding
+	# w2v_model = api.load('word2vec-google-news-300')
+	# embedding_size = w2v_model.vector_size
 
 	# Feature Extraction
 	vectorizer = TfidfVectorizer(analyzer=lambda x: x.split(), tokenizer=lambda x: x.split(),
@@ -111,13 +120,6 @@ if __name__ == '__main__':
 	# 	 w in w2v_model and w in vectorizer.vocabulary_] or [np.zeros(embedding_size)], axis=0) for
 	# 					   text in X_test])
 
-	# Feature Extraction
-	# X_train_emb = np.array([np.mean(
-	# 	[w2v_model[w] for w in text.split() if w in w2v_model] or [np.zeros(embedding_size)],
-	# 	axis=0) for text in X_train_spm])
-	# X_test_emb = np.array([np.mean(
-	# 	[w2v_model[w] for w in text.split() if w in w2v_model] or [np.zeros(embedding_size)],
-	# 	axis=0) for text in X_test_spm])
 
 	if args.train:
 		# Training Classifier
@@ -131,3 +133,5 @@ if __name__ == '__main__':
 
 	# Evaluation
 	eval(clf, X_test_tfidf, y_test)
+	print('Training set score: {:.4f}'.format(clf.score(X_train_tfidf, y_train)))
+	print('Test set score: {:.4f}'.format(clf.score(X_test_tfidf, y_test)))
