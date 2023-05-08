@@ -76,7 +76,7 @@ if __name__ == '__main__':
 						default='./data/archive')
 	parser.add_argument("-train", "-t",
 						help="train or load",
-						default=False)
+						default=True)
 
 
 
@@ -124,14 +124,28 @@ if __name__ == '__main__':
 	if args.train:
 		# Training Classifier
 		clf = lgb.LGBMClassifier(num_leaves=64, n_estimators=300, max_depth=9)
+		rf_clf = RandomForestClassifier(n_estimators=100)
 		# CV_rfc = GridSearchCV(clf, param_grid={'max_depth': [2, 3]}, cv=5)
-		clf.fit(X_train_tfidf, y_train)
-		# save the model to disk
-		pickle.dump(clf, open(filename, 'wb'))
+		# Train LightGBM Classifier
+		lgb_clf.fit(X_train_tfidf, y_train)
+		# Save the LightGBM model to disk
+		pickle.dump(lgb_clf, open('lgb_model.sav', 'wb'))
+
+		# Train Random Forest Classifier
+		rf_clf.fit(X_train_tfidf, y_train)
+		# Save the Random Forest model to disk
+		pickle.dump(rf_clf, open('rf_model.sav', 'wb'))
 	else:
 		clf = pickle.load(open(filename, 'rb'))
 
-	# Evaluation
-	eval(clf, X_test_tfidf, y_test)
-	print('Training set score: {:.4f}'.format(clf.score(X_train_tfidf, y_train)))
-	print('Test set score: {:.4f}'.format(clf.score(X_test_tfidf, y_test)))
+	# Evaluation - LightGBM
+	print("Evaluation - LightGBM")
+	eval(lgb_clf, X_test_tfidf, y_test)
+	print('Training set score (LightGBM): {:.4f}'.format(lgb_clf.score(X_train_tfidf, y_train)))
+	print('Test set score (LightGBM): {:.4f}'.format(lgb_clf.score(X_test_tfidf, y_test)))
+
+	# Evaluation - Random Forest
+	print("Evaluation - Random Forest")
+	eval(rf_clf, X_test_tfidf, y_test)
+	print('Training set score (Random Forest): {:.4f}'.format(rf_clf.score(X_train_tfidf, y_train)))
+	print('Test set score (Random Forest): {:.4f}'.format(rf_clf.score(X_test_tfidf, y_test)))
