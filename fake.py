@@ -8,6 +8,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, prec
 from sklearn.svm import SVC
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 import sys as sys
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -127,7 +128,8 @@ if __name__ == '__main__':
 		'LightGBM': lgb.LGBMClassifier(num_leaves=64, n_estimators=300, max_depth=9),
 		'Random Forest': RandomForestClassifier(n_estimators=100),
 		'SVM': SVC(kernel='linear', probability=True),
-		'Multinomial Naive Bayes': MultinomialNB()
+		'Multinomial Naive Bayes': MultinomialNB(),
+		'KNN': KNeighborsClassifier(n_neighbors=5)
 	}
 
 	if args.train:
